@@ -2,9 +2,18 @@
 
 """Decorators used by BruteBuster"""
 
-from BruteBuster.models import FailedAttempt
+from BruteBuster.models import FailedAttempt, LoginAttempt
 from BruteBuster.middleware import get_request
 
+
+def get_ip_address():
+    request = get_request()
+    if request:
+        # try to get the remote address from thread locals
+        IP_ADDR = request.META.get('REMOTE_ADDR', None)
+    else:
+        IP_ADDR = None
+    return IP_ADDR
 
 def protect_and_serve(auth_func):
     """
@@ -26,12 +35,10 @@ def protect_and_serve(auth_func):
         if not user:
             raise ValueError('BruteBuster cannot work with authenticate functions that do not include "username" as an argument')
 
-        request = get_request()
-        if request:
-            # try to get the remote address from thread locals
-            IP_ADDR = request.META.get('REMOTE_ADDR', None)
-        else:
-            IP_ADDR = None
+        IP_ADDR = get_ip_address()
+
+        # logging login attempt in LoginAttempt model
+        LoginAttempt.objects.create(username=user, IP=IP_ADDR)
 
         try:
             fa = FailedAttempt.objects.filter(username=user, IP=IP_ADDR)[0]

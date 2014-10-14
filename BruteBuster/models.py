@@ -55,3 +55,9 @@ class FailedAttempt (models.Model):
     class Meta:
         ordering = ['-timestamp']
         unique_together = (("username", "IP"),)
+
+
+class LoginAttempt (models.Model):
+    username = models.CharField('Username', max_length=255)
+    IP = models.IPAddressField('IP Address', null=True)
+    timestamp = models.DateTimeField('Last login attempt', auto_now=True)
