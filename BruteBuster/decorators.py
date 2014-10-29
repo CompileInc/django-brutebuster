@@ -38,7 +38,7 @@ def protect_and_serve(auth_func):
         IP_ADDR = get_ip_address()
 
         # logging login attempt in LoginAttempt model
-        LoginAttempt.objects.create(username=user, IP=IP_ADDR)
+        login_attempt = LoginAttempt(username=user, IP=IP_ADDR)
 
         try:
             fa = FailedAttempt.objects.filter(username=user, IP=IP_ADDR)[0]
@@ -48,6 +48,7 @@ def protect_and_serve(auth_func):
                     # of too many recent failures
                     fa.failures += 1
                     fa.save()
+                    login_attempt.save()
                     return None
             else:
                 # the block interval is over, so let's start
@@ -62,11 +63,14 @@ def protect_and_serve(auth_func):
         if result:
             # the authentication was successful - we do nothing
             # special
+            login_attempt.status = True
+            login_attempt.save()
             return result
         # the authentication was kaput, we should record this
         fa = fa or FailedAttempt(username=user, IP=IP_ADDR, failures=0)
         fa.failures += 1
         fa.save()
+        login_attempt.save()
         # return with unsuccessful auth
         return None
 

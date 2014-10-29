@@ -61,3 +61,4 @@ class LoginAttempt (models.Model):
     username = models.CharField('Username', max_length=255)
     IP = models.IPAddressField('IP Address', null=True)
     timestamp = models.DateTimeField('Last login attempt', auto_now=True)
+    status = models.BooleanField(default=False)
